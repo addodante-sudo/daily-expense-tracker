@@ -13,13 +13,15 @@
     .balance-box h3 { margin: 0 0 4px 0; font-size: 0.9rem; opacity: 0.9; text-transform: uppercase; }
     .balance-box p { margin: 0; font-size: 1.8rem; font-weight: bold; }
     .form-group { margin-bottom: 12px; }
-    input { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 0.95rem; }
+    input, select { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 0.95rem; background: #fff; }
     button { width: 100%; padding: 12px; background: #38a169; color: #ffffff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-bottom: 8px; }
     button:hover { background: #2f855a; }
     .clear-btn { background: #e53e3e; }
     .clear-btn:hover { background: #c53030; }
-    ul { list-style: none; padding: 0; margin-top: 20px; max-height: 200px; overflow-y: auto; }
-    li { display: flex; justify-content: space-between; background: #edf2f7; padding: 10px 12px; border-radius: 6px; margin-bottom: 8px; font-size: 0.9rem; }
+    ul { list-style: none; padding: 0; margin-top: 20px; max-height: 220px; overflow-y: auto; }
+    li { display: flex; justify-content: space-between; align-items: center; background: #edf2f7; padding: 10px 12px; border-radius: 6px; margin-bottom: 8px; font-size: 0.9rem; }
+    .details { display: flex; flex-direction: column; }
+    .tag { font-size: 0.75rem; color: #4a5568; background: #e2e8f0; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-top: 4px; width: fit-content; }
     .amount { font-weight: bold; color: #e53e3e; }
   </style>
 </head>
@@ -33,10 +35,18 @@
     </div>
 
     <div class="form-group">
-      <input type="text" id="item" placeholder="Expense description (e.g., MoMo cashout)">
+      <input type="text" id="item" placeholder="Expense description (e.g., Data bundle)">
     </div>
     <div class="form-group">
       <input type="number" id="cost" placeholder="Amount (GHS)">
+    </div>
+    <div class="form-group">
+      <select id="category">
+        <option value="Mobile Money (MoMo)">Mobile Money (MoMo)</option>
+        <option value="Cash">Cash</option>
+        <option value="Bank Transfer">Bank Transfer</option>
+        <option value="Card">Card</option>
+      </select>
     </div>
     <button onclick="addExpense()">Add Expense</button>
     <button class="clear-btn" onclick="clearAllExpenses()">Clear All History</button>
@@ -45,10 +55,8 @@
   </div>
 
   <script>
-    // Load existing expenses from browser localStorage or start empty
     let expenses = JSON.parse(localStorage.getItem('my_expenses')) || [];
 
-    // Render saved data immediately on page load
     window.onload = function() {
       updateUI();
     };
@@ -56,17 +64,18 @@
     function addExpense() {
       const itemInput = document.getElementById('item');
       const costInput = document.getElementById('cost');
+      const categoryInput = document.getElementById('category');
       
       const itemText = itemInput.value.trim();
       const costAmount = parseFloat(costInput.value);
+      const categoryText = categoryInput.value;
 
       if (itemText === '' || isNaN(costAmount) || costAmount <= 0) {
         alert('Please enter a valid description and amount.');
         return;
       }
 
-      // Add to expenses array and save to localStorage
-      expenses.unshift({ text: itemText, amount: costAmount });
+      expenses.unshift({ text: itemText, amount: costAmount, category: categoryText });
       localStorage.setItem('my_expenses', JSON.stringify(expenses));
 
       updateUI();
@@ -85,7 +94,13 @@
       expenses.forEach(expense => {
         totalSpent += expense.amount;
         const li = document.createElement('li');
-        li.innerHTML = `<span>${expense.text}</span> <span class="amount">- GHS ${expense.amount.toFixed(2)}</span>`;
+        li.innerHTML = `
+          <div class="details">
+            <strong>${expense.text}</strong>
+            <span class="tag">${expense.category || 'General'}</span>
+          </div>
+          <span class="amount">- GHS ${expense.amount.toFixed(2)}</span>
+        `;
         listElement.appendChild(li);
       });
 
