@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daily Expense Tracker</title>
+  <style>
+    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background: #f4f7f6; display: flex; justify-content: center; padding: 20px; margin: 0; }
+    .card { background: #ffffff; border-radius: 12px; padding: 24px; width: 100%; max-width: 420px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
+    h2 { margin-top: 0; color: #1a202c; font-size: 1.5rem; text-align: center; }
+    .balance-box { background: #3182ce; color: #ffffff; padding: 16px; border-radius: 8px; text-align: center; margin-bottom: 20px; }
+    .balance-box h3 { margin: 0 0 4px 0; font-size: 0.9rem; opacity: 0.9; text-transform: uppercase; }
+    .balance-box p { margin: 0; font-size: 1.8rem; font-weight: bold; }
+    .form-group { margin-bottom: 12px; }
+    input { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 0.95rem; }
+    button { width: 100%; padding: 12px; background: #38a169; color: #ffffff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+    button:hover { background: #2f855a; }
+    ul { list-style: none; padding: 0; margin-top: 20px; max-height: 200px; overflow-y: auto; }
+    li { display: flex; justify-content: space-between; background: #edf2f7; padding: 10px 12px; border-radius: 6px; margin-bottom: 8px; font-size: 0.9rem; }
+    .amount { font-weight: bold; color: #e53e3e; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>Expense Tracker</h2>
+    <div class="balance-box">
+      <h3>Total Spent</h3>
+      <p id="total">GHS 0.00</p>
+    </div>
+
+    <div class="form-group">
+      <input type="text" id="item" placeholder="Expense description (e.g., MoMo cashout)">
+    </div>
+    <div class="form-group">
+      <input type="number" id="cost" placeholder="Amount (GHS)">
+    </div>
+    <button onclick="addExpense()">Add Expense</button>
+
+    <ul id="list"></ul>
+  </div>
+
+  <script>
+    let totalSpent = 0;
+
+    function addExpense() {
+      const itemInput = document.getElementById('item');
+      const costInput = document.getElementById('cost');
+      
+      const itemText = itemInput.value.trim();
+      const costAmount = parseFloat(costInput.value);
+
+      if (itemText === '' || isNaN(costAmount) || costAmount <= 0) {
+        alert('Please enter a valid description and amount.');
+        return;
+      }
+
+      totalSpent += costAmount;
+      document.getElementById('total').innerText = 'GHS ' + totalSpent.toFixed(2);
+
+      const li = document.createElement('li');
+      li.innerHTML = `<span>${itemText}</span> <span class="amount">- GHS ${costAmount.toFixed(2)}</span>`;
+      document.getElementById('list').prepend(li);
+
+      itemInput.value = '';
+      costInput.value = '';
+    }
+  </script>
+
+</body>
+</html>
