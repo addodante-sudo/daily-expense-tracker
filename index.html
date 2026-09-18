@@ -14,8 +14,10 @@
     .balance-box p { margin: 0; font-size: 1.8rem; font-weight: bold; }
     .form-group { margin-bottom: 12px; }
     input { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 0.95rem; }
-    button { width: 100%; padding: 12px; background: #38a169; color: #ffffff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+    button { width: 100%; padding: 12px; background: #38a169; color: #ffffff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-bottom: 8px; }
     button:hover { background: #2f855a; }
+    .clear-btn { background: #e53e3e; }
+    .clear-btn:hover { background: #c53030; }
     ul { list-style: none; padding: 0; margin-top: 20px; max-height: 200px; overflow-y: auto; }
     li { display: flex; justify-content: space-between; background: #edf2f7; padding: 10px 12px; border-radius: 6px; margin-bottom: 8px; font-size: 0.9rem; }
     .amount { font-weight: bold; color: #e53e3e; }
@@ -37,12 +39,19 @@
       <input type="number" id="cost" placeholder="Amount (GHS)">
     </div>
     <button onclick="addExpense()">Add Expense</button>
+    <button class="clear-btn" onclick="clearAllExpenses()">Clear All History</button>
 
     <ul id="list"></ul>
   </div>
 
   <script>
-    let totalSpent = 0;
+    // Load existing expenses from browser localStorage or start empty
+    let expenses = JSON.parse(localStorage.getItem('my_expenses')) || [];
+
+    // Render saved data immediately on page load
+    window.onload = function() {
+      updateUI();
+    };
 
     function addExpense() {
       const itemInput = document.getElementById('item');
@@ -56,15 +65,39 @@
         return;
       }
 
-      totalSpent += costAmount;
-      document.getElementById('total').innerText = 'GHS ' + totalSpent.toFixed(2);
+      // Add to expenses array and save to localStorage
+      expenses.unshift({ text: itemText, amount: costAmount });
+      localStorage.setItem('my_expenses', JSON.stringify(expenses));
 
-      const li = document.createElement('li');
-      li.innerHTML = `<span>${itemText}</span> <span class="amount">- GHS ${costAmount.toFixed(2)}</span>`;
-      document.getElementById('list').prepend(li);
+      updateUI();
 
       itemInput.value = '';
       costInput.value = '';
+    }
+
+    function updateUI() {
+      const listElement = document.getElementById('list');
+      const totalElement = document.getElementById('total');
+      
+      listElement.innerHTML = '';
+      let totalSpent = 0;
+
+      expenses.forEach(expense => {
+        totalSpent += expense.amount;
+        const li = document.createElement('li');
+        li.innerHTML = `<span>${expense.text}</span> <span class="amount">- GHS ${expense.amount.toFixed(2)}</span>`;
+        listElement.appendChild(li);
+      });
+
+      totalElement.innerText = 'GHS ' + totalSpent.toFixed(2);
+    }
+
+    function clearAllExpenses() {
+      if (confirm('Are you sure you want to clear all saved expenses?')) {
+        expenses = [];
+        localStorage.removeItem('my_expenses');
+        updateUI();
+      }
     }
   </script>
 
