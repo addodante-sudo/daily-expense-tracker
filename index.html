@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Daily Budget & Income Tracker</title>
+  <!-- Chart.js Library -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     body { background: #f4f7f6; display: flex; justify-content: center; padding: 20px; margin: 0; }
@@ -21,6 +23,8 @@
     .balance-box h3 { margin: 0 0 4px 0; font-size: 0.85rem; opacity: 0.9; text-transform: uppercase; }
     .balance-box p { margin: 0; font-size: 1.6rem; font-weight: bold; }
 
+    .chart-container { position: relative; margin: 20px 0; width: 100%; max-height: 220px; display: flex; justify-content: center; }
+
     .form-group { margin-bottom: 12px; }
     input, select { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 0.95rem; background: #fff; }
     button { width: 100%; padding: 12px; background: #38a169; color: #ffffff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-bottom: 8px; }
@@ -28,7 +32,7 @@
     .export-btn { background: #3182ce; }
     .clear-btn { background: #e53e3e; }
     
-    ul { list-style: none; padding: 0; margin-top: 20px; max-height: 220px; overflow-y: auto; }
+    ul { list-style: none; padding: 0; margin-top: 20px; max-height: 200px; overflow-y: auto; }
     li { display: flex; justify-content: space-between; align-items: center; background: #edf2f7; padding: 10px 12px; border-radius: 6px; margin-bottom: 8px; font-size: 0.9rem; }
     .details { display: flex; flex-direction: column; }
     .tag { font-size: 0.75rem; color: #4a5568; background: #e2e8f0; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-top: 4px; width: fit-content; }
@@ -39,7 +43,7 @@
 <body>
 
   <div class="card">
-    <h2>Budget & Income Tracker</h2>
+    <h2>Budget Tracker</h2>
     
     <div class="balance-box">
       <h3>Net Balance</h3>
@@ -81,11 +85,17 @@
     <button class="export-btn" onclick="exportToCSV()">Export to CSV (Excel)</button>
     <button class="clear-btn" onclick="clearAllData()">Clear All History</button>
 
+    <!-- Visual Chart -->
+    <div class="chart-container">
+      <canvas id="financeChart"></canvas>
+    </div>
+
     <ul id="list"></ul>
   </div>
 
   <script>
     let transactions = JSON.parse(localStorage.getItem('my_transactions')) || [];
+    let myChart = null;
 
     window.onload = function() {
       updateUI();
@@ -165,6 +175,37 @@
       } else {
         netBalanceElement.style.color = '#ffffff';
       }
+
+      renderChart(totalIncome, totalExpense);
+    }
+
+    function renderChart(income, expense) {
+      const ctx = document.getElementById('financeChart').getContext('2d');
+      
+      if (myChart) {
+        myChart.destroy();
+      }
+
+      myChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: ['Income', 'Expenses'],
+          datasets: [{
+            data: [income, expense],
+            backgroundColor: ['#38a169', '#e53e3e'],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom'
+            }
+          }
+        }
+      });
     }
 
     function exportToCSV() {
