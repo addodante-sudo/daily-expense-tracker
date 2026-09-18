@@ -4,8 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Daily Budget & Income Tracker</title>
-  <!-- Chart.js Library -->
+  <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Paystack Inline JS CDN -->
+  <script src="https://js.paystack.co/v1/inline.js"></script>
   <style>
     * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     body { background: #f4f7f6; display: flex; justify-content: center; padding: 20px; margin: 0; }
@@ -30,8 +32,12 @@
     button { width: 100%; padding: 12px; background: #38a169; color: #ffffff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-bottom: 8px; }
     button:hover { opacity: 0.95; }
     .export-btn { background: #3182ce; }
+    .paystack-btn { background: #0ba4db; }
     .clear-btn { background: #e53e3e; }
     
+    .pay-section { border-top: 2px dashed #e2e8f0; margin-top: 20px; padding-top: 16px; }
+    .pay-section h3 { margin: 0 0 10px 0; font-size: 1rem; color: #2d3748; text-align: center; }
+
     ul { list-style: none; padding: 0; margin-top: 20px; max-height: 200px; overflow-y: auto; }
     li { display: flex; justify-content: space-between; align-items: center; background: #edf2f7; padding: 10px 12px; border-radius: 6px; margin-bottom: 8px; font-size: 0.9rem; }
     .details { display: flex; flex-direction: column; }
@@ -83,7 +89,20 @@
     </div>
     <button onclick="addTransaction()">Add Entry</button>
     <button class="export-btn" onclick="exportToCSV()">Export to CSV (Excel)</button>
-    <button class="clear-btn" onclick="clearAllData()">Clear All History</button>
+
+    <!-- Paystack Payment Integration -->
+    <div class="pay-section">
+      <h3>Support / Pay via MoMo or Card</h3>
+      <div class="form-group">
+        <input type="email" id="email-address" placeholder="Enter your email address" required />
+      </div>
+      <div class="form-group">
+        <input type="number" id="pay-amount" placeholder="Payment Amount (GHS)" value="10" />
+      </div>
+      <button class="paystack-btn" onclick="payWithPaystack()">Pay with Paystack</button>
+    </div>
+
+    <button class="clear-btn" style="margin-top: 16px;" onclick="clearAllData()">Clear All History</button>
 
     <!-- Visual Chart -->
     <div class="chart-container">
@@ -96,6 +115,9 @@
   <script>
     let transactions = JSON.parse(localStorage.getItem('my_transactions')) || [];
     let myChart = null;
+
+    // REPLACE THIS TEST KEY WITH YOUR OWN PUBLIC KEY FROM PAYSTACK DASHBOARD
+    const PAYSTACK_PUBLIC_KEY = 'pk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 
     window.onload = function() {
       updateUI();
@@ -206,6 +228,37 @@
           }
         }
       });
+    }
+
+    function payWithPaystack() {
+      const email = document.getElementById('email-address').value.trim();
+      const amountGHS = parseFloat(document.getElementById('pay-amount').value);
+
+      if (!email) {
+        alert('Please enter your email address.');
+        return;
+      }
+
+      if (isNaN(amountGHS) || amountGHS <= 0) {
+        alert('Please enter a valid amount.');
+        return;
+      }
+
+      let handler = PaystackPop.setup({
+        key: PAYSTACK_PUBLIC_KEY,
+        email: email,
+        currency: 'GHS',
+        amount: amountGHS * 100, // Amount in pesewas
+        ref: 'TRX_' + Math.floor((Math.random() * 1000000000) + 1),
+        onClose: function() {
+          alert('Window closed.');
+        },
+        callback: function(response) {
+          alert('Payment successful! Transaction Reference: ' + response.reference);
+        }
+      });
+
+      handler.openIframe();
     }
 
     function exportToCSV() {
